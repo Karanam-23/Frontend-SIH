@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  body {
+    @apply bg-background text-on-background font-body-md;
+  }
+}
+
+@layer utilities {
+  /* Dotted Background Grid simulating tactile surface */
+  .pattern-bg,
+  .bg-bone-dots,
+  .bg-dot-pattern {
+    background-color: theme('colors.background');
+    background-image: radial-gradient(theme('colors.outline-variant') 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: center;
+  }
+
+  /* Glassmorphism panel and overlays */
+  .glass,
+  .glass-panel,
+  .glass-overlay,
+  .glass-card {
+    background: rgba(249, 247, 242, 0.85); /* Bone slightly transparent */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(125, 122, 116, 0.2); /* Stone Grey border */
+  }
+
+  /* Tactical Card Elevation and hover transitions */
+  .card-elevation,
+  .card-shadow,
+  .tactile-card,
+  .data-card {
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(125, 122, 116, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-elevation:hover,
+  .card-shadow:hover,
+  .tactile-card:hover,
+  .data-card:hover {
+    box-shadow: 0px 8px 32px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Left-edge clay/terracotta status accent bar */
+  .status-bar-clay {
+    border-left: 4px solid theme('colors.secondary');
+  }
+
+  /* Typing cursor or status blink animation */
+  .blink {
+    animation: blinker 1s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* Keyframes for subtle-rise card slide-up */
+  @keyframes subtle-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-subtle-rise {
+    animation: subtle-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Keyframes for slide-in drawer */
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Disable animations for users preferring reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .blink,
+    .animate-subtle-rise,
+    .animate-slide-in-right {
+      animation: none !important;
+      transform: none !important;
+      transition: none !important;
+    }
+  }
+
+  /* Material Symbols Font settings for consistency */
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  .material-symbols-outlined.fill,
+  .material-symbols-outlined.filled {
+    font-variation-settings: 'FILL' 1;
+  }
+}
+
+/* Contractor Checklist Print overrides */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    overflow: visible !important;
+  }
+
+  nav,
+  header,
+  .no-print,
+  button,
+  a:not([href]) {
+    display: none !important;
+  }
+
+  .print-canvas {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .print-item {
+    break-inside: avoid;
+  }
+}
