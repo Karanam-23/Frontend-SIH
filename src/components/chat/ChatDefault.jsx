@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { streamChatMessage } from '../../services/api';
 import AppShell from '../layout/AppShell';
 import Sidebar from '../layout/Sidebar';
 import BottomNavBar from '../layout/BottomNavBar';
@@ -14,30 +13,18 @@ const SUGGESTION_CHIPS = [
 export default function ChatDefault() {
   const {
     setView,
-    chatMessages,
-    setChatMessages,
-    assessmentId,
-    sessionId,
+    setPendingChatMessage,
   } = useApp();
 
   const [inputText, setInputText] = useState('');
 
+  // Store the message as pending so ChatActive can add it once and stream it.
   const sendAndNavigate = (text) => {
-    if (!text.trim()) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
 
-    // Append the user's message to history, then navigate to the active chat view
-    setChatMessages((prev) => [
-      ...prev,
-      { id: Date.now(), sender: 'user', text: text.trim() },
-    ]);
+    setPendingChatMessage(trimmed);
     setView('chatActive');
-    // Note: ChatActive will pick up the pending message via chatMessages context
-    // and the streaming will begin from its own effect/input handler.
-    // For the chip path we fire a one-shot stream after navigation.
-    setTimeout(() => {
-      // chatActive is now mounted; kick off the stream via the API directly
-      // (ChatActive handles rendering; here we just prime the messages array)
-    }, 0);
   };
 
   const handleChipClick = (chip) => sendAndNavigate(chip);
@@ -46,12 +33,13 @@ export default function ChatDefault() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendAndNavigate(inputText);
+      setInputText('');
     }
   };
 
-  const handleInputClick = () => {
-    // Preserve text — just navigate to the full chat view
-    setView('chatActive');
+  const handleSendClick = () => {
+    sendAndNavigate(inputText);
+    setInputText('');
   };
 
   return (
@@ -119,12 +107,11 @@ export default function ChatDefault() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleInputKeyDown}
-              onClick={handleInputClick}
             />
             <button
               aria-label="Send message"
               className="p-3 text-secondary hover:text-secondary-container transition-colors"
-              onClick={() => sendAndNavigate(inputText)}
+              onClick={handleSendClick}
             >
               <span className="material-symbols-outlined" data-icon="send">send</span>
             </button>

@@ -137,10 +137,10 @@ function buildMockAssessmentResponse(payload) {
       },
       estimated_payback_years: 4.5,
       line_items: [
-        { category: 'Filtration',  description: 'Filter Unit (Dual Stage)',        qty: '2 Nos',   unit_cost_inr: 22500, total_cost_inr: 45000  },
-        { category: 'Collection',  description: 'First Flush Diverter (PVC)',      qty: '4 Nos',   unit_cost_inr: 3125,  total_cost_inr: 12500  },
-        { category: 'Storage',     description: 'Storage Tank (10,000L RCC)',      qty: '1 Unit',  unit_cost_inr: 120000,total_cost_inr: 120000 },
-        { category: 'Conveyance',  description: 'Piping & Fittings (HDPE)',        qty: '150 Rmt', unit_cost_inr: 233,   total_cost_inr: 35000  },
+        { category: 'Filtration', description: 'Filter Unit (Dual Stage)', quantity: '2 Nos', unit: 'Nos', rate: 22500, amount: 45000, unit_cost_inr: 22500, total_cost_inr: 45000 },
+        { category: 'Collection', description: 'First Flush Diverter (PVC)', quantity: '4 Nos', unit: 'Nos', rate: 3125, amount: 12500, unit_cost_inr: 3125, total_cost_inr: 12500 },
+        { category: 'Storage', description: 'Storage Tank (10,000L RCC)', quantity: '1 Unit', unit: 'Unit', rate: 120000, amount: 120000, unit_cost_inr: 120000, total_cost_inr: 120000 },
+        { category: 'Conveyance', description: 'Piping & Fittings (HDPE)', quantity: '150 Rmt', unit: 'Rmt', rate: 233, amount: 35000, unit_cost_inr: 233, total_cost_inr: 35000 },
       ],
     },
   };
@@ -195,18 +195,29 @@ export const streamChatMessage = (
     // Split into word-level tokens and stream them with delays
     const tokens = MOCK_CHAT_RESPONSE.split(' ');
     let i = 0;
+    let active = true;
+    const timers = [];
+
     const tick = () => {
+      if (!active) return;
       if (i >= tokens.length) {
-        onComplete();
+        if (typeof onComplete === 'function') onComplete();
         return;
       }
       // Send next token (add space back except on last token)
       onToken((i < tokens.length - 1 ? tokens[i] + ' ' : tokens[i]));
       i++;
-      setTimeout(tick, 45);
+      const nextTimer = setTimeout(tick, 45);
+      timers.push(nextTimer);
     };
-    setTimeout(tick, 300); // initial "thinking" pause
-    return; // no cleanup needed for mock
+
+    const initialTimer = setTimeout(tick, 300);
+    timers.push(initialTimer);
+
+    return () => {
+      active = false;
+      timers.forEach(clearTimeout);
+    };
   }
 
   // Real backend — POST then consume body as SSE ReadableStream

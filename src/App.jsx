@@ -1,5 +1,6 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import ErrorBoundary from './components/shared/ErrorBoundary';
 
 // SRS Architecture container components
 import DashboardView from './components/DashboardView';
@@ -137,9 +138,19 @@ function AppContent() {
 }
 
 export default function App() {
+  const handleRecover = () => {
+    window.location.reload();
+  };
+
+  const handleReturnHome = () => {
+    window.location.assign('/');
+  };
+
   return (
     <AppProvider>
-      <AppContent />
+      <ErrorBoundary onReset={handleRecover} onReturnHome={handleReturnHome}>
+        <AppContent />
+      </ErrorBoundary>
     </AppProvider>
   );
 }

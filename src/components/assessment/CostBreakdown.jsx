@@ -22,8 +22,10 @@ export default function CostBreakdown() {
   const lineItems = boq?.line_items ?? defaultCostItems;
   const costItems = lineItems.map((item, i) => ({
     ...item,
-    // new schema uses total_cost_inr; old mock used amount — support both
-    amount:     item.total_cost_inr ?? item.amount ?? 0,
+    // Accept both the documented SRS schema and the older mock field names.
+    quantity:  item.quantity ?? item.qty ?? '—',
+    amount:    item.amount ?? item.total_cost_inr ?? 0,
+    unit:      item.unit ?? 'Unit',
     colorClass: item.colorClass ?? COLOR_CLASSES[i % COLOR_CLASSES.length],
   }));
   const totalCost = boq?.total_estimated_cost_range?.midpoint ?? (activeAssessment?.total_cost ?? 212500);
@@ -76,8 +78,8 @@ export default function CostBreakdown() {
                     <span className="font-semibold">{item.category}</span>
                   </td>
                   <td className="p-4 text-on-surface-variant text-sm">{item.description}</td>
-                  <td className="p-4 font-data-mono text-sm">{item.qty}</td>
-                  <td className="p-4 text-right pr-6 font-data-mono font-semibold">₹ {item.amount.toLocaleString('en-IN')}</td>
+                  <td className="p-4 font-data-mono text-sm">{item.quantity}</td>
+                  <td className="p-4 text-right pr-6 font-data-mono font-semibold">₹ {Number(item.amount || 0).toLocaleString('en-IN')}</td>
                 </tr>
               ))}
               <tr className="bg-surface border-t border-outline-variant/40">

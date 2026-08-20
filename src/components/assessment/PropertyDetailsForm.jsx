@@ -31,8 +31,8 @@ export default function PropertyDetailsForm() {
 
     // Build the complete assessment payload
     const payload = {
-      latitude:      selectedLocation?.latitude  ?? 28.5562,
-      longitude:     selectedLocation?.longitude ?? 77.2001,
+      latitude:      selectedLocation?.latitude ?? null,
+      longitude:     selectedLocation?.longitude ?? null,
       address:       selectedLocation?.address,
       source:        selectedLocation?.source ?? 'MANUAL',
       roof_material: selectedMaterial,

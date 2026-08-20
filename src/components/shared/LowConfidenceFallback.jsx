@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 
 export default function LowConfidenceFallback() {
-  const { setView, chatMessages, addChatMessage } = useApp();
+  const { setView, startNewAssessment } = useApp();
 
   return (
     <div className="flex w-full h-screen overflow-hidden bg-background">
@@ -11,7 +11,7 @@ export default function LowConfidenceFallback() {
           JalRakshak
         </div>
         <div className="flex items-center gap-4 text-primary">
-          <button onClick={() => setView('propertyForm')} className="hover:bg-surface-container-low transition-colors duration-200 p-2 rounded-full">
+          <button onClick={startNewAssessment} className="hover:bg-surface-container-low transition-colors duration-200 p-2 rounded-full">
             <span className="material-symbols-outlined" data-icon="history">history</span>
           </button>
           <button className="hover:bg-surface-container-low transition-colors duration-200 p-2 rounded-full">
@@ -25,7 +25,7 @@ export default function LowConfidenceFallback() {
           <h1 className="text-secondary font-headline-sm font-bold">JalRakshak AI</h1>
           <p className="font-label-sm text-label-sm text-on-surface-variant uppercase mt-1">Conservation Assistant</p>
         </div>
-        <button className="w-full bg-secondary text-on-secondary font-body-md py-3 px-4 rounded-lg flex items-center justify-center gap-2 mb-6 hover:bg-secondary/90 transition-colors shadow-sm">
+        <button onClick={startNewAssessment} className="w-full bg-secondary text-on-secondary font-body-md py-3 px-4 rounded-lg flex items-center justify-center gap-2 mb-6 hover:bg-secondary/90 transition-colors shadow-sm cursor-pointer">
           <span className="material-symbols-outlined text-sm">add</span>
           New Assessment
         </button>
@@ -111,7 +111,7 @@ export default function LowConfidenceFallback() {
               </p>
             </div>
             <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row gap-3 mt-2 md:mt-0">
-              <button onClick={() => setView('propertyForm')} className="px-6 py-3 rounded-lg font-body-md font-semibold text-primary border-2 border-primary hover:bg-surface-container-low transition-colors w-full sm:w-auto text-center cursor-pointer">
+              <button onClick={startNewAssessment} className="px-6 py-3 rounded-lg font-body-md font-semibold text-primary border-2 border-primary hover:bg-surface-container-low transition-colors w-full sm:w-auto text-center cursor-pointer">
                 Cancel
               </button>
               <button onClick={() => setView('polygonEditor')} className="px-6 py-3 rounded-lg font-body-md font-semibold bg-secondary text-on-secondary hover:bg-secondary/90 transition-colors shadow-sm w-full sm:w-auto text-center flex items-center justify-center gap-2 cursor-pointer">

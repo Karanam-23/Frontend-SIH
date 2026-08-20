@@ -10,18 +10,20 @@ export default function BottomNavBar() {
   const isChatActive = currentView === 'chatDefault' || currentView === 'chatActive';
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center py-3 px-2 bg-surface text-secondary border-t border-outline-variant/20 shadow-inner rounded-t-xl z-50 pb-safe">
-      <a 
-        onClick={() => setView('home')} 
+    <nav aria-label="Mobile bottom navigation" className="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center py-3 px-2 bg-surface text-secondary border-t border-outline-variant/20 shadow-inner rounded-t-xl z-50 pb-safe">
+      <button
+        type="button"
+        aria-label="Go to home"
+        onClick={() => setView('home')}
         className={`flex flex-col items-center justify-center select-none cursor-pointer ${
           isHomeActive 
             ? 'text-secondary bg-secondary-fixed/10 rounded-full px-4 py-1 font-bold scale-95 transition-transform' 
             : 'text-on-surface-variant hover:text-secondary'
-        }`}
+        } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2`}
       >
         <span className={`material-symbols-outlined mb-1 select-none`} style={{ fontVariationSettings: isHomeActive ? "'FILL' 1" : "'FILL' 0" }}>home</span>
         <span className="font-label-sm text-[10px] sm:text-xs">Home</span>
-      </a>
+      </button>
 
       <a 
         onClick={() => setView('roofAnalysis')} 

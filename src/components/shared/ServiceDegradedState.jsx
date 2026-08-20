@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 
 export default function ServiceDegradedState() {
-  const { setView, assessmentError } = useApp();
+  const { setView, assessmentError, startNewAssessment } = useApp();
 
   const errorCode = assessmentError ? assessmentError.code : 'UPSTREAM_SERVICE_UNAVAILABLE';
   const errorMessage = assessmentError ? assessmentError.message : 'Real-time telemetry and predictive models are temporarily offline.';
@@ -38,7 +38,7 @@ export default function ServiceDegradedState() {
           </a>
         </div>
         <div className="mt-auto">
-          <button onClick={() => setView('propertyForm')} className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-3 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-opacity-90 transition-colors cursor-pointer">
+          <button onClick={startNewAssessment} className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-3 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-opacity-90 transition-colors cursor-pointer">
             <span className="material-symbols-outlined text-sm">add</span>
             <span className="">New Assessment</span>
           </button>
@@ -78,7 +78,7 @@ export default function ServiceDegradedState() {
                 <span className="material-symbols-outlined text-red-500 text-[16px]">wifi_off</span>
                 <span className="font-label-sm text-label-sm text-red-600 font-bold uppercase tracking-wide">Error Status: {errorCode}</span>
                 <div className="h-3 w-px bg-outline-variant/50 mx-2"></div>
-                <button onClick={() => setView('propertyForm')} className="text-secondary font-label-sm text-label-sm hover:underline flex items-center space-x-1 cursor-pointer">
+                <button onClick={startNewAssessment} className="text-secondary font-label-sm text-label-sm hover:underline flex items-center space-x-1 cursor-pointer">
                   <span>Try Again</span>
                   <span className="material-symbols-outlined text-[14px]">refresh</span>
                 </button>

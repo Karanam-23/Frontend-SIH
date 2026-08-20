@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 
 // ---------------------------------------------------------------------------
@@ -16,7 +16,7 @@ async function mockGeocode(address) {
 }
 
 export default function Home() {
-  const { setView, setSelectedLocation, setAssessmentStatus } = useApp();
+  const { setView, setSelectedLocation, setAssessmentStatus, focusManualInput, setFocusManualInput } = useApp();
 
   const [locLoading,  setLocLoading]  = useState(false);
   const [locError,    setLocError]    = useState('');
@@ -24,6 +24,14 @@ export default function Home() {
   const [addrLoading, setAddrLoading] = useState(false);
 
   const inputRef = useRef(null);
+
+  // Auto-focus the manual address field when returning from LocationPermissionDenied
+  useEffect(() => {
+    if (focusManualInput) {
+      setFocusManualInput(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [focusManualInput, setFocusManualInput]);
 
   // ── Real browser geolocation ─────────────────────────────────────────────
   const handleUseCurrentLocation = () => {

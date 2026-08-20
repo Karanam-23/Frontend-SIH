@@ -64,6 +64,9 @@ export const AppProvider = ({ children }) => {
     setPolygonCoords(DEFAULT_POLYGON);
   };
 
+  // focusManualInput: set by LocationPermissionDenied to signal Home to focus the address field
+  const [focusManualInput, setFocusManualInput] = useState(false);
+
   // ── Material / occupants form state ───────────────────────────────────────
   const [selectedMaterial, setSelectedMaterial] = useState('UNBAKED_CLAY');
   const [occupants, setOccupants]               = useState(4);
@@ -82,6 +85,19 @@ export const AppProvider = ({ children }) => {
   const [chatMessages, setChatMessages] = useState([
     { id: 1, sender: 'bot', text: 'Hello! I am your JalRakshak Conservation Assistant. How can I help you today?' },
   ]);
+  // pendingChatMessage: set by ChatDefault chip/input before navigating to chatActive;
+  // consumed and cleared once by ChatActive on mount.
+  const [pendingChatMessage, setPendingChatMessage] = useState(null);
+
+  const clearPendingChatMessage = useCallback(() => setPendingChatMessage(null), []);
+
+  const setPendingChatMessageValue = useCallback((message) => {
+    if (!message || !String(message).trim()) {
+      setPendingChatMessage(null);
+      return;
+    }
+    setPendingChatMessage(String(message).trim());
+  }, []);
 
   const addChatMessage = (text, sender = 'user') => {
     setChatMessages((prev) => [...prev, { id: Date.now(), sender, text }]);
@@ -97,12 +113,14 @@ export const AppProvider = ({ children }) => {
     setSessionId(null);
     setActiveAssessment(null);
     setAssessmentError(null);
+    setFocusManualInput(false);
     setPolygonCoords(DEFAULT_POLYGON);
     setPolygonHistory([]);
     setSelectedMaterial('UNBAKED_CLAY');
     setOccupants(4);
+    clearPendingChatMessage();
     setView('home');
-  }, []);
+  }, [clearPendingChatMessage]);
 
   // ── handleAssessmentResponse ──────────────────────────────────────────────
   // Centralized handler for the assessLocation() API response.
@@ -197,10 +215,17 @@ export const AppProvider = ({ children }) => {
       selectedSite,
       setSelectedSite,
 
+      // Manual input focus signal (LocationPermissionDenied → Home)
+      focusManualInput,
+      setFocusManualInput,
+
       // Chat
       chatMessages,
       setChatMessages,
       addChatMessage,
+      pendingChatMessage,
+      setPendingChatMessage: setPendingChatMessageValue,
+      clearPendingChatMessage,
     }}>
       {children}
     </AppContext.Provider>

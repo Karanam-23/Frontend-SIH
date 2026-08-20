@@ -2,7 +2,7 @@ import React from 'react';
 import { useApp } from '../../context/AppContext';
 
 export default function Sidebar({ variant = 'placeholder' }) {
-  const { currentView, setView } = useApp();
+  const { currentView, setView, startNewAssessment } = useApp();
 
   const isMapActive = currentView === 'roofAnalysis' || currentView === 'polygonEditor';
   const isAssessmentActive = currentView === 'costBreakdown' || currentView === 'assessmentResults' || currentView === 'systemSchematic' || currentView === 'contractorChecklist' || currentView === 'propertyForm' || currentView === 'calculating';
@@ -10,7 +10,7 @@ export default function Sidebar({ variant = 'placeholder' }) {
   const isChatActive = currentView === 'chatDefault' || currentView === 'chatActive';
 
   return (
-    <nav className="hidden lg:flex flex-col p-4 space-y-4 bg-surface-container text-secondary font-label-sm text-label-sm docked left-0 h-full w-64 border-r border-outline-variant/30 shadow-lg scale-102 hover:shadow-md transition-all shrink-0 z-40">
+    <nav aria-label="Main navigation" className="hidden lg:flex flex-col p-4 space-y-4 bg-surface-container text-secondary font-label-sm text-label-sm docked left-0 h-full w-64 border-r border-outline-variant/30 shadow-lg scale-102 hover:shadow-md transition-all shrink-0 z-40">
       <div className="mb-8 px-4 py-2 flex items-center gap-3">
         <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>water_drop</span>
         <div>
@@ -19,7 +19,12 @@ export default function Sidebar({ variant = 'placeholder' }) {
         </div>
       </div>
 
-      <button onClick={() => setView('propertyForm')} className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-3 px-4 rounded-lg font-bold mb-6 hover:bg-secondary-container hover:text-on-secondary-container transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer">
+      <button
+        type="button"
+        aria-label="Start a new assessment"
+        onClick={startNewAssessment}
+        className="w-full bg-secondary text-on-secondary font-label-sm text-label-sm py-3 px-4 rounded-lg font-bold mb-6 hover:bg-secondary-container hover:text-on-secondary-container transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
+      >
         <span className="material-symbols-outlined">add</span> New Assessment
       </button>
 

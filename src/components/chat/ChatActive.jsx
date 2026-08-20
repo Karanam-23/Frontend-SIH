@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '../../context/AppContext';
 import { streamChatMessage } from '../../services/api';
 import AppShell from '../layout/AppShell';
@@ -9,34 +9,56 @@ export default function ChatActive() {
   const {
     chatMessages,
     setChatMessages,
+    pendingChatMessage,
+    clearPendingChatMessage,
     assessmentId,
     sessionId,
   } = useApp();
 
   const [inputText,    setInputText]    = useState('');
-  const [isStreaming,  setIsStreaming]  = useState(false);
+  const [isStreaming,  setIsStreaming]   = useState(false);
   const [streamingText,setStreamingText]= useState('');
-  const messagesEndRef = useRef(null);
-  const abortRef       = useRef(null);   // holds the cancel fn returned by streamChatMessage
 
-  // Auto-scroll to bottom on new content
+  const messagesEndRef = useRef(null);
+  // abortRef: holds the cancel/abort function returned by streamChatMessage (real mode)
+  // or the clearTimeout function (mock mode)
+  const abortRef     = useRef(null);
+  // isMounted guard — prevents setState after unmount
+  const isMountedRef = useRef(true);
+
+  // ── Cleanup on unmount (Step 8) ───────────────────────────────────────────
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Abort any in-flight real stream or cancel mock timers
+      if (typeof abortRef.current === 'function') {
+        abortRef.current();
+        abortRef.current = null;
+      }
+    };
+  }, []);
+
+  // ── Auto-scroll ───────────────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages, streamingText]);
 
-  const handleSend = () => {
-    const text = inputText.trim();
+  // ── Core streaming trigger ────────────────────────────────────────────────
+  const fireStream = useCallback((text) => {
     if (!text || isStreaming) return;
 
-    // Append user message immediately
+    if (typeof abortRef.current === 'function') {
+      abortRef.current();
+      abortRef.current = null;
+    }
+
     setChatMessages((prev) => [
       ...prev,
       { id: Date.now(), sender: 'user', text },
     ]);
-    setInputText('');
     setIsStreaming(true);
     setStreamingText('');
-
     let accumulated = '';
 
     abortRef.current = streamChatMessage(
@@ -45,11 +67,13 @@ export default function ChatActive() {
       text,
       // onToken
       (token) => {
+        if (!isMountedRef.current) return;
         accumulated += token;
         setStreamingText(accumulated);
       },
       // onComplete
       () => {
+        if (!isMountedRef.current) return;
         setChatMessages((prev) => [
           ...prev,
           { id: Date.now(), sender: 'bot', text: accumulated },
@@ -60,6 +84,7 @@ export default function ChatActive() {
       },
       // onError
       (err) => {
+        if (!isMountedRef.current) return;
         console.error('Stream error:', err);
         setChatMessages((prev) => [
           ...prev,
@@ -70,6 +95,27 @@ export default function ChatActive() {
         abortRef.current = null;
       }
     );
+  }, [assessmentId, sessionId, isStreaming, setChatMessages]);
+
+  // ── Step 2: consume pending message from ChatDefault on first mount ───────
+  const hasProcessedPendingRef = useRef(false);
+
+  useEffect(() => {
+    if (!pendingChatMessage || hasProcessedPendingRef.current) return;
+
+    hasProcessedPendingRef.current = true;
+    const msg = pendingChatMessage;
+    clearPendingChatMessage();
+    fireStream(msg);
+  }, [pendingChatMessage, clearPendingChatMessage, fireStream]);
+
+  // ── User types and sends ──────────────────────────────────────────────────
+  const handleSend = () => {
+    const text = inputText.trim();
+    if (!text || isStreaming) return;
+
+    setInputText('');
+    fireStream(text);
   };
 
   const handleKeyDown = (e) => {
@@ -93,7 +139,7 @@ export default function ChatActive() {
           </span>
         </div>
 
-        {chatMessages.map((msg) => (
+        {chatMessages.map((msg) =>
           msg.sender === 'user' ? (
             <div key={msg.id} className="flex justify-end w-full">
               <div className="max-w-[85%] lg:max-w-[60%] flex space-x-3 items-end justify-end">
@@ -118,9 +164,9 @@ export default function ChatActive() {
               </div>
             </div>
           )
-        ))}
+        )}
 
-        {/* Streaming response — growing in real time */}
+        {/* Live streaming response */}
         {isStreaming && (
           <div className="flex justify-start w-full">
             <div className="max-w-[85%] lg:max-w-[70%] flex space-x-3 items-end">
