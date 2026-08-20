@@ -8,11 +8,18 @@ import BottomNavBar from '../layout/BottomNavBar';
 export default function AssessmentResults() {
   const { setView, activeAssessment } = useApp();
 
-  const yieldVal = activeAssessment ? activeAssessment.harvestable_water.toLocaleString() : '8,217';
-  const areaVal = activeAssessment ? activeAssessment.roof_area : 120;
-  const rainfallVal = activeAssessment ? activeAssessment.rainfall : 850;
-  const recommendationText = activeAssessment ? activeAssessment.recommendation : 'Combining rooftop collection with surface runoff infiltration provides the optimal ROI for your terrain.';
-  const recommendationTitle = activeAssessment ? 'Hybrid Collection Recommended' : 'Dual-recharge hybrid system suggested.';
+  // SRS §6.3.1 schema fields
+  const yieldVal    = activeAssessment
+    ? (activeAssessment.hydrology?.annual_harvestable_yield_litres ?? 0).toLocaleString('en-IN')
+    : '83,935';
+  const areaVal     = activeAssessment ? (activeAssessment.rooftop?.area_sqm ?? 116.1) : 116.1;
+  const rainfallVal = activeAssessment ? (activeAssessment.hydrology?.annual_precipitation_mm ?? 850) : 850;
+  const strategy    = activeAssessment?.recommendations?.primary_strategy;
+  const recommendationTitle = strategy?.type
+    ? strategy.type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : 'Dual-Recharge Hybrid System';
+  const recommendationText  = strategy?.description
+    ?? 'Combining rooftop collection with surface runoff infiltration provides the optimal ROI for your terrain.';
 
   return (
     <AppShell
@@ -36,7 +43,7 @@ export default function AssessmentResults() {
                 <span className="font-display-lg text-display-lg-mobile md:text-display-lg text-secondary" id="animated-yield">{yieldVal}</span>
                 <span className="font-headline-sm text-headline-sm text-on-surface-variant ml-2">Litres/year</span>
               </div>
-              <p className="font-body-lg text-body-lg text-primary mb-6">~{(activeAssessment ? Math.round(activeAssessment.harvestable_water / 13) : 630)} household water drums saved annually.</p>
+              <p className="font-body-lg text-body-lg text-primary mb-6">~{(activeAssessment ? Math.round((activeAssessment.hydrology?.annual_harvestable_yield_litres ?? 83935) / 13) : 6456)} household water drums saved annually.</p>
               <div className="flex items-center space-x-2 text-tertiary-fixed-dim bg-tertiary-container/10 w-fit px-3 py-1.5 rounded-full">
                 <span className="material-symbols-outlined fill text-[18px]">verified</span>
                 <span className="font-label-sm text-label-sm font-semibold">High confidence based on regional rainfall.</span>

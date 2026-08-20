@@ -15,9 +15,21 @@ export default function CostBreakdown() {
     { category: 'Conveyance', description: 'Piping & Fittings (HDPE)', qty: '150 Rmt', amount: 35000, colorClass: 'bg-on-surface-variant' }
   ];
 
-  const costItems = activeAssessment && activeAssessment.cost_items ? activeAssessment.cost_items : defaultCostItems;
-  const totalCost = activeAssessment && activeAssessment.total_cost ? activeAssessment.total_cost : 212500;
-  const payback = activeAssessment && activeAssessment.payback_period ? activeAssessment.payback_period : '4.5 years';
+  const COLOR_CLASSES = ['bg-secondary','bg-tertiary-container','bg-outline','bg-on-surface-variant'];
+
+  // SRS §6.3.1 financial_boq schema
+  const boq       = activeAssessment?.financial_boq;
+  const lineItems = boq?.line_items ?? defaultCostItems;
+  const costItems = lineItems.map((item, i) => ({
+    ...item,
+    // new schema uses total_cost_inr; old mock used amount — support both
+    amount:     item.total_cost_inr ?? item.amount ?? 0,
+    colorClass: item.colorClass ?? COLOR_CLASSES[i % COLOR_CLASSES.length],
+  }));
+  const totalCost = boq?.total_estimated_cost_range?.midpoint ?? (activeAssessment?.total_cost ?? 212500);
+  const payback   = boq?.estimated_payback_years
+    ? `${boq.estimated_payback_years} years`
+    : '4.5 years';
 
   return (
     <AppShell

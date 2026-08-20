@@ -8,72 +8,59 @@ import TopAppBar from '../layout/TopAppBar';
 import BottomNavBar from '../layout/BottomNavBar';
 
 export default function PropertyDetailsForm() {
-  const { 
-    setView, 
+  const {
+    setView,
+    selectedLocation,
     polygonCoords,
-    activeAssessment, 
-    setActiveAssessment,
-    assessmentError, 
-    setAssessmentError,
-    selectedMaterial, 
+    selectedMaterial,
     setSelectedMaterial,
-    occupants, 
-    setOccupants
+    occupants,
+    setOccupants,
+    setAssessmentStatus,
+    handleAssessmentResponse,
+    handleAssessmentError,
   } = useApp();
 
-  const handleDecrement = () => {
-    // Keep occupants within a testable range
-    setOccupants(occupants - 1);
-  };
-
-  const handleIncrement = () => {
-    setOccupants(occupants + 1);
-  };
+  const handleDecrement = () => setOccupants((n) => Math.max(1, n - 1));
+  const handleIncrement = () => setOccupants((n) => n + 1);
 
   const handleSubmit = async () => {
+    // Transition to the calculating screen immediately
+    setAssessmentStatus('calculating');
+    setView('calculating');
+
+    // Build the complete assessment payload
+    const payload = {
+      latitude:      selectedLocation?.latitude  ?? 28.5562,
+      longitude:     selectedLocation?.longitude ?? 77.2001,
+      address:       selectedLocation?.address,
+      source:        selectedLocation?.source ?? 'MANUAL',
+      roof_material: selectedMaterial,
+      occupants:     occupants,
+      override_polygon: {
+        type: 'Polygon',
+        coordinates: [
+          [...polygonCoords, polygonCoords[0]].map((c) => [c[1], c[0]]),
+        ],
+      },
+    };
+
     try {
-      // Transition to calculating loading screen immediately
-      setView('calculating');
-      
-      const payload = {
-        latitude: 28.5562,
-        longitude: 77.2001,
-        roof_material: selectedMaterial,
-        occupants: occupants,
-        override_polygon: {
-          type: "Polygon",
-          coordinates: [
-            [...polygonCoords, polygonCoords[0]].map(c => [c[1], c[0]])
-          ]
-        }
-      };
-      
       const response = await assessLocation(payload);
-      
-      if (response.status === 'LOW_CONFIDENCE_FALLBACK') {
-        setAssessmentError(null);
-        setActiveAssessment(null);
-        setView('lowConfidence');
-      } else {
-        setAssessmentError(null);
-        setActiveAssessment(response.data);
-        setView('assessmentResults');
-      }
+      // Centralized handler sets IDs, activeAssessment, and routes the view
+      handleAssessmentResponse(response, setView);
     } catch (err) {
-      console.error('API submission failed:', err);
-      const errCode = err.response?.data?.error_code || 'INTERNAL_ERROR';
-      const errMsg = err.response?.data?.message || 'An unexpected connection error occurred.';
-      setAssessmentError({ code: errCode, message: errMsg });
-      setView('serviceDegraded');
+      console.error('Assessment API error:', err);
+      handleAssessmentError(err, setView);
     }
   };
 
   const materials = [
-    { key: 'RCC_FLAT', label: 'RCC', icon: 'architecture' },
-    { key: 'SLOPED_METAL', label: 'Metal', icon: 'warehouse' },
-    { key: 'TILED_TERRACOTTA', label: 'Tile', icon: 'grid_on' },
-    { key: 'UNBAKED_CLAY', label: 'Clay', icon: 'roofing' },
-    { key: 'BITUMEN_ASPHALT', label: 'Asphalt', icon: 'layers' }
+    { key: 'RCC_FLAT',         label: 'RCC',    icon: 'architecture' },
+    { key: 'SLOPED_METAL',     label: 'Metal',  icon: 'warehouse'    },
+    { key: 'TILED_TERRACOTTA', label: 'Tile',   icon: 'grid_on'      },
+    { key: 'UNBAKED_CLAY',     label: 'Clay',   icon: 'roofing'      },
+    { key: 'BITUMEN_ASPHALT',  label: 'Asphalt',icon: 'layers'       },
   ];
 
   return (
@@ -90,6 +77,7 @@ export default function PropertyDetailsForm() {
           <p className="text-on-surface-variant font-body-lg text-body-lg">Help us estimate your rainwater harvesting potential.</p>
         </div>
 
+        {/* Roof Material */}
         <div className="mb-section-gap">
           <label className="block font-label-sm text-label-sm uppercase text-outline mb-4 tracking-wider">Roof Material</label>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -111,22 +99,21 @@ export default function PropertyDetailsForm() {
                     </span>
                   )}
                   <span
-                    className={`material-symbols-outlined text-2xl mb-2 ${
-                      isSelected ? 'text-secondary' : 'text-outline group-hover:text-on-surface'
-                    }`}
+                    className={`material-symbols-outlined text-2xl mb-2 ${isSelected ? 'text-secondary' : 'text-outline'}`}
                     style={{ fontVariationSettings: isSelected ? "'FILL' 1" : "'FILL' 0" }}
                   >
                     {m.icon}
                   </span>
-                  <span className={`font-label-sm text-label-sm ${
-                    isSelected ? 'text-secondary font-bold' : 'text-on-surface-variant'
-                  }`}>{m.label}</span>
+                  <span className={`font-label-sm text-label-sm ${isSelected ? 'text-secondary font-bold' : 'text-on-surface-variant'}`}>
+                    {m.label}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* Occupants */}
         <div className="mb-section-gap flex flex-col md:flex-row md:items-center justify-between p-6 bg-surface border border-outline-variant rounded-lg">
           <div className="mb-4 md:mb-0">
             <label className="block font-label-sm text-label-sm uppercase text-outline tracking-wider mb-1">Number of Occupants</label>
@@ -150,6 +137,7 @@ export default function PropertyDetailsForm() {
           </div>
         </div>
 
+        {/* Submit */}
         <div className="mt-8 pt-6 border-t border-outline-variant/30 text-right">
           <button
             onClick={handleSubmit}
